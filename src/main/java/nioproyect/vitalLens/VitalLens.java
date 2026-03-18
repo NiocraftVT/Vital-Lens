@@ -29,7 +29,11 @@ public final class VitalLens extends JavaPlugin {
     public void onDisable() {
 
         if (healthManager != null) {
-            healthManager.getDisplays().values().forEach(display -> display.remove());
+            healthManager.getDisplays().values().forEach(display -> {
+                try {
+                    display.remove();
+                } catch (Exception ignored) {}
+            });
         }
     }
 
