@@ -1,10 +1,11 @@
 package nioproyect.vitalLens;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 public class MobListener implements Listener {
 
@@ -20,14 +21,11 @@ public class MobListener implements Listener {
     }
 
     @EventHandler
-    public void onDamage(EntityDamageEvent event) {
-
+    public void onDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            plugin.getHealthManager().updateDisplay(entity);
-        });
+        plugin.getHealthManager().updateDisplay(entity);
     }
 
     @EventHandler

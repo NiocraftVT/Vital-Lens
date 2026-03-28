@@ -1,0 +1,12 @@
+#-------------------------------------------------
+                  #VITAL LENS
+#-------------------------------------------------
+
+health-bar:
+
+  #añade un estilo para la barra de vida
+  # default // grapes // orion
+  style: default
+
+  #simbolo para la vida
+  heart-symbol: "❤"

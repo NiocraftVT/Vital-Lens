@@ -1,6 +1,8 @@
 package nioproyect.vitalLens;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class VitalLens extends JavaPlugin {
@@ -9,6 +11,8 @@ public final class VitalLens extends JavaPlugin {
 
     @Override
     public void onEnable() {
+
+        saveDefaultConfig();
 
         this.healthManager = new HealthManager(this);
 
@@ -35,6 +39,24 @@ public final class VitalLens extends JavaPlugin {
                 } catch (Exception ignored) {}
             });
         }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+
+            reloadConfig();
+
+            healthManager.reloadAllBars();
+
+            sender.sendMessage("VitalLens recargado correctamente!");
+
+            return true;
+        }
+
+        sender.sendMessage("usa: vitalLens reload");
+        return true;
+
     }
 
     public HealthManager getHealthManager() {

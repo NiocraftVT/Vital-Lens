@@ -2,6 +2,7 @@ package nioproyect.vitalLens;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.*;
 
 import java.util.HashMap;
@@ -12,23 +13,18 @@ import java.util.UUID;
 public class HealthManager {
 
     private final VitalLens plugin;
-
     private final Map<UUID, TextDisplay> displays = new HashMap<>();
     private final Map<UUID, String> lastText = new HashMap<>();
-
     private final double VIEW_DISTANCE = 8;
 
     public HealthManager(VitalLens plugin) {
         this.plugin = plugin;
     }
 
-
     public void createDisplay(LivingEntity entity) {
-
         if (entity == null || !entity.isValid()) return;
 
         UUID uuid = entity.getUniqueId();
-
         if (displays.containsKey(uuid)) return;
         if (!isPlayerNearby(entity)) return;
 
@@ -43,7 +39,6 @@ public class HealthManager {
 
             text.setInterpolationDuration(3);
             text.setInterpolationDelay(0);
-
             text.setViewRange(8);
 
             displays.put(uuid, text);
@@ -53,56 +48,82 @@ public class HealthManager {
         } catch (Exception ignored) {}
     }
 
-
     public void updateDisplay(LivingEntity entity) {
-
-        if (entity == null || !entity.isValid()) return;
-
-        UUID uuid = entity.getUniqueId();
-        TextDisplay display = displays.get(uuid);
-
+        TextDisplay display = displays.get(entity.getUniqueId());
         if (display == null) return;
 
+        double health = entity.getHealth();
+        double maxHealth = entity.getMaxHealth();
+
+        String color = getHealthColor(health, maxHealth);
+        String bar = buildBar(health, maxHealth);
+        String heart = plugin.getConfig().getString("health-bar.heart-symbol", "❤");
+
+        String text = "§f" + entity.getName() + "\n" + bar + " §7" + color + (int) health + "/" + (int) maxHealth + heart;
+
+        display.setText(text);
+    }
+
+    private String buildBar(double health, double maxHealth) {
+        int length = 10;
+        int filled = (int) Math.round((health / maxHealth) * length);
+        String style = plugin.getConfig().getString("health-bar.style", "default");
+        String[] styleSymbols = BarStyles.getStyle(style);
+        String full = styleSymbols[0];
+        String empty = styleSymbols[1];
+
+        StringBuilder bar = new StringBuilder();
+        bar.append("§7[");
+
+        for (int i = 0; i < length; i++) {
+            if (i < filled) bar.append(getHealthColor(health, maxHealth)).append(full);
+            else bar.append("§7").append(empty);
+        }
+
+        bar.append("§7]");
+        return bar.toString();
+    }
+
+    private String getHealthColor(double health, double maxHealth) {
+        double percent = health / maxHealth;
+        if (percent >= 0.75) return colorHex("#0FF200");
+        if (percent >= 0.50) return colorHex("#ffee00");
+        if (percent >= 0.25) return colorHex("#ff9900");
+        return colorHex("#ff3b3b");
+    }
+
+    private String colorHex(String hex) {
+        if (!hex.startsWith("#")) return hex;
+        hex = hex.replace("#", "");
+        StringBuilder color = new StringBuilder("§x");
+        for (char c : hex.toCharArray()) color.append("§").append(c);
+        return color.toString();
+    }
+
+    private boolean isPlayerNearby(LivingEntity entity) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getLocation().distanceSquared(entity.getLocation()) <= VIEW_DISTANCE * VIEW_DISTANCE) return true;
+        }
+        return false;
+    }
+
+    public void remove(Entity entity) {
+        UUID uuid = entity.getUniqueId();
+        TextDisplay display = displays.remove(uuid);
+        if (display != null) safeRemove(display);
+        lastText.remove(uuid);
+    }
+
+    private void safeRemove(TextDisplay display) {
         try {
-            double health = entity.getHealth();
-            double maxHealth = entity.getMaxHealth();
-
-            double percent = health / maxHealth;
-
-            String color;
-            if (percent > 0.6) color = "§a";
-            else if (percent > 0.3) color = "§e";
-            else color = "§c";
-
-            int bars = (int) (percent * 10);
-
-            StringBuilder bar = new StringBuilder("§8[");
-
-            for (int i = 0; i < bars; i++) bar.append(color).append("█");
-            for (int i = bars; i < 10; i++) bar.append("§7░");
-
-            bar.append("§8]");
-
-            String text = entity.getName() + " " + bar + " §7" +
-                    (int) health + "/" + (int) maxHealth + "❤";
-
-            if (!text.equals(lastText.get(uuid))) {
-                display.setText(text);
-                lastText.put(uuid, text);
-            }
-
+            display.remove();
         } catch (Exception ignored) {}
     }
 
-
     public void updatePositions() {
-
         Iterator<Map.Entry<UUID, TextDisplay>> iterator = displays.entrySet().iterator();
-
         while (iterator.hasNext()) {
-
             var entry = iterator.next();
-
             Entity entity = Bukkit.getEntity(entry.getKey());
 
             if (!(entity instanceof LivingEntity living) || !living.isValid() || living.isDead()) {
@@ -129,48 +150,25 @@ public class HealthManager {
         }
     }
 
-
     public void autoCreateNearby() {
-
         for (Player player : Bukkit.getOnlinePlayers()) {
-
             for (Entity entity : player.getNearbyEntities(VIEW_DISTANCE, VIEW_DISTANCE, VIEW_DISTANCE)) {
-
                 if (!(entity instanceof LivingEntity living)) continue;
                 if (!living.isValid() || living.isDead()) continue;
+                if (!displays.containsKey(living.getUniqueId())) createDisplay(living);
+            }
+        }
+    }
 
-                if (!displays.containsKey(living.getUniqueId())) {
-                    createDisplay(living);
+
+    public void reloadAllBars() {
+        for (World world : Bukkit.getWorlds()) {
+            for (LivingEntity entity : world.getLivingEntities()) {
+                if (!entity.isDead()) {
+                    updateDisplay(entity);
                 }
             }
         }
-    }
-
-    private boolean isPlayerNearby(LivingEntity entity) {
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.getLocation().distanceSquared(entity.getLocation()) <= VIEW_DISTANCE * VIEW_DISTANCE) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void remove(Entity entity) {
-
-        UUID uuid = entity.getUniqueId();
-
-        TextDisplay display = displays.remove(uuid);
-
-        if (display != null) safeRemove(display);
-
-        lastText.remove(uuid);
-    }
-
-    private void safeRemove(TextDisplay display) {
-        try {
-            display.remove();
-        } catch (Exception ignored) {}
     }
 
     public Map<UUID, TextDisplay> getDisplays() {

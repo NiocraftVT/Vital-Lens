@@ -1,6 +1,10 @@
 name: vital-lens
-version: 'v1.1.0'
+version: 'v1.2.0'
 main: nioproyect.vitalLens.VitalLens
 api-version: '1.20'
 authors: [ Niocraft_VT ]
 description: Observa la vida de los mobs de minecraft
+
+commands:
+  vitallens:
+    description: recargar la config del plugin
