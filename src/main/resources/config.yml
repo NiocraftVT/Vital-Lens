@@ -4,9 +4,17 @@
 
 health-bar:
 
+  #activa o desactiva los numeros de la vida
+  show-numbers: true
+
   #añade un estilo para la barra de vida
-  # default // grapes // orion
+  # default // grapes // orion // masaru // inari // valencho // nixcel // crisneko
   style: default
 
   #simbolo para la vida
   heart-symbol: "❤"
+
+mob-type-icon:
+
+  #muestra un indicador de HOSTIL // PACIFICO // NEUTRAL de las entidades
+  enable: false

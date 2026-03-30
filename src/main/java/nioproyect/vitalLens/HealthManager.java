@@ -21,6 +21,10 @@ public class HealthManager {
         this.plugin = plugin;
     }
 
+    public VitalLens getPlugin() {
+        return plugin;
+    }
+
     public void createDisplay(LivingEntity entity) {
         if (entity == null || !entity.isValid()) return;
 
@@ -37,6 +41,9 @@ public class HealthManager {
             text.setSeeThrough(true);
             text.setShadowed(false);
 
+            text.setLineWidth(120);
+
+
             text.setInterpolationDuration(3);
             text.setInterpolationDelay(0);
             text.setViewRange(8);
@@ -49,43 +56,74 @@ public class HealthManager {
     }
 
     public void updateDisplay(LivingEntity entity) {
+
         TextDisplay display = displays.get(entity.getUniqueId());
         if (display == null) return;
 
         double health = entity.getHealth();
         double maxHealth = entity.getMaxHealth();
 
-        String color = getHealthColor(health, maxHealth);
-        String bar = buildBar(health, maxHealth);
-        String heart = plugin.getConfig().getString("health-bar.heart-symbol", "❤");
+        boolean numbersEnabled = plugin.getConfig().getBoolean("health-bar.show-numbers");
 
-        String text = "§f" + entity.getName() + "\n" + bar + " §7" + color + (int) health + "/" + (int) maxHealth + heart;
+        String type = getMobType(entity);
+
+
+        String text = type + entity.getName() + "\n";
+
+
+        text += buildBar(health, maxHealth);
+
+
+        if (numbersEnabled) {
+            String color = getHealthColor(health, maxHealth);
+            String heart = plugin.getConfig().getString("health-bar.heart-symbol", "❤");
+            text += " §7" + color + (int) health + "/" + (int) maxHealth + heart;
+        }
 
         display.setText(text);
     }
 
     private String buildBar(double health, double maxHealth) {
+
         int length = 10;
-        int filled = (int) Math.round((health / maxHealth) * length);
+        int filled = (int) ((health / maxHealth) * length);
+
         String style = plugin.getConfig().getString("health-bar.style", "default");
+
         String[] styleSymbols = BarStyles.getStyle(style);
+
+
+        if (styleSymbols == null || styleSymbols.length < 2) {
+            styleSymbols = BarStyles.getStyle("default");
+        }
+
         String full = styleSymbols[0];
         String empty = styleSymbols[1];
 
         StringBuilder bar = new StringBuilder();
         bar.append("§7[");
 
-        for (int i = 0; i < length; i++) {
-            if (i < filled) bar.append(getHealthColor(health, maxHealth)).append(full);
-            else bar.append("§7").append(empty);
+
+        bar.append(getHealthColor(health, maxHealth));
+        for (int i = 0; i < filled; i++) {
+            bar.append(full);
+        }
+
+
+        bar.append("§7");
+        for (int i = filled; i < length; i++) {
+            bar.append(empty);
         }
 
         bar.append("§7]");
+
         return bar.toString();
     }
 
     private String getHealthColor(double health, double maxHealth) {
+
         double percent = health / maxHealth;
+
         if (percent >= 0.75) return colorHex("#0FF200");
         if (percent >= 0.50) return colorHex("#ffee00");
         if (percent >= 0.25) return colorHex("#ff9900");
@@ -93,24 +131,68 @@ public class HealthManager {
     }
 
     private String colorHex(String hex) {
+
         if (!hex.startsWith("#")) return hex;
+
         hex = hex.replace("#", "");
+
         StringBuilder color = new StringBuilder("§x");
-        for (char c : hex.toCharArray()) color.append("§").append(c);
+
+        for (char c : hex.toCharArray()) {
+            color.append("§").append(c);
+        }
+
         return color.toString();
     }
 
+    private String getMobType(LivingEntity entity) {
+
+        if (!plugin.getConfig().getBoolean("mob-type-icon.enable"))
+            return "";
+
+
+        if (entity instanceof Monster)
+            return colorHex("#ff3b3b") + "[\uD83D\uDDE1] HOSTIL " + "§f";
+
+
+        if (entity.getLastDamageCause() != null) {
+
+
+            if (entity.getLastDamageCause() instanceof org.bukkit.event.entity.EntityDamageByEntityEvent damage) {
+
+                if (damage.getDamager() instanceof Player) {
+                    return colorHex("#ff3b3b") + "[\uD83D\uDDE1] HOSTIL " + "§f";
+                }
+            }
+        }
+
+        if (entity instanceof Animals)
+            return colorHex("#5CFF5C") + "[❀] PACIFICO " + "§f";
+
+
+        if (entity instanceof Villager)
+            return colorHex("#5CFF5C") + "[❀] PACIFICO " + "§f";
+
+
+        return colorHex("#FFD93B") + "[\uD83C\uDF1F] NEUTRAL " + "§f";
+    }
+
     private boolean isPlayerNearby(LivingEntity entity) {
+
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.getLocation().distanceSquared(entity.getLocation()) <= VIEW_DISTANCE * VIEW_DISTANCE) return true;
+            if (player.getLocation().distanceSquared(entity.getLocation()) <= VIEW_DISTANCE * VIEW_DISTANCE)
+                return true;
         }
         return false;
     }
 
     public void remove(Entity entity) {
+
         UUID uuid = entity.getUniqueId();
         TextDisplay display = displays.remove(uuid);
+
         if (display != null) safeRemove(display);
+
         lastText.remove(uuid);
     }
 
@@ -121,9 +203,13 @@ public class HealthManager {
     }
 
     public void updatePositions() {
+
         Iterator<Map.Entry<UUID, TextDisplay>> iterator = displays.entrySet().iterator();
+
         while (iterator.hasNext()) {
+
             var entry = iterator.next();
+
             Entity entity = Bukkit.getEntity(entry.getKey());
 
             if (!(entity instanceof LivingEntity living) || !living.isValid() || living.isDead()) {
@@ -142,6 +228,8 @@ public class HealthManager {
 
             Location newLoc = living.getEyeLocation().add(0, 0.5, 0);
 
+            updateDisplay(living);
+
             try {
                 if (entry.getValue().getLocation().distanceSquared(newLoc) > 0.002) {
                     entry.getValue().teleport(newLoc);
@@ -151,19 +239,28 @@ public class HealthManager {
     }
 
     public void autoCreateNearby() {
+
         for (Player player : Bukkit.getOnlinePlayers()) {
+
             for (Entity entity : player.getNearbyEntities(VIEW_DISTANCE, VIEW_DISTANCE, VIEW_DISTANCE)) {
+
                 if (!(entity instanceof LivingEntity living)) continue;
                 if (!living.isValid() || living.isDead()) continue;
-                if (!displays.containsKey(living.getUniqueId())) createDisplay(living);
+
+                if (!displays.containsKey(living.getUniqueId())) {
+                    createDisplay(living);
+                }
             }
         }
     }
 
-
     public void reloadAllBars() {
+
+        plugin.reloadConfig();
+
         for (World world : Bukkit.getWorlds()) {
             for (LivingEntity entity : world.getLivingEntities()) {
+
                 if (!entity.isDead()) {
                     updateDisplay(entity);
                 }
