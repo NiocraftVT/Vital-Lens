@@ -18,6 +18,13 @@ public final class VitalLens extends JavaPlugin implements TabCompleter {
 
         saveDefaultConfig();
 
+        if (!getDataFolder().exists()) {
+            getDataFolder().mkdirs();
+        }
+
+        saveResource("lang/es.yml", false);
+        saveResource("lang/en.yml", false);
+
         this.healthManager = new HealthManager(this);
 
         getServer().getPluginManager().registerEvents(new MobListener(healthManager), this);

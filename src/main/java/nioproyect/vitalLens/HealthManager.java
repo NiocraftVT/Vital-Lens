@@ -4,7 +4,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.*;
+import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -17,12 +19,38 @@ public class HealthManager {
     private final Map<UUID, String> lastText = new HashMap<>();
     private final double VIEW_DISTANCE = 8;
 
+
+    private YamlConfiguration lang;
+
     public HealthManager(VitalLens plugin) {
         this.plugin = plugin;
+
+
+        loadLanguage();
     }
 
     public VitalLens getPlugin() {
         return plugin;
+    }
+
+
+    private void loadLanguage() {
+
+        String langName = plugin.getConfig().getString("language", "en");
+
+        File folder = new File(plugin.getDataFolder(), "lang");
+        if (!folder.exists()) folder.mkdirs();
+
+        File file = new File(folder, langName + ".yml");
+
+
+        if (!file.exists()) {
+            plugin.getLogger().warning("Language file not found: " + langName + ".yml");
+            lang = null;
+            return;
+        }
+
+        lang = YamlConfiguration.loadConfiguration(file);
     }
 
     public void createDisplay(LivingEntity entity) {
@@ -41,12 +69,13 @@ public class HealthManager {
             text.setSeeThrough(true);
             text.setShadowed(false);
 
-            text.setLineWidth(120);
+            int width = plugin.getConfig().getInt("health-bar.width", 120);
+            text.setLineWidth(width);
 
+            text.setViewRange(8);
 
             text.setInterpolationDuration(3);
             text.setInterpolationDelay(0);
-            text.setViewRange(8);
 
             displays.put(uuid, text);
 
@@ -60,6 +89,8 @@ public class HealthManager {
         TextDisplay display = displays.get(entity.getUniqueId());
         if (display == null) return;
 
+        display.setLineWidth(plugin.getConfig().getInt("health-bar.width", 120));
+
         double health = entity.getHealth();
         double maxHealth = entity.getMaxHealth();
 
@@ -68,11 +99,9 @@ public class HealthManager {
         String type = getMobType(entity);
 
 
-        String text = type + entity.getName() + "\n";
-
+        String text = type + "§f" + getTranslatedName(entity) + "\n";
 
         text += buildBar(health, maxHealth);
-
 
         if (numbersEnabled) {
             String color = getHealthColor(health, maxHealth);
@@ -81,6 +110,16 @@ public class HealthManager {
         }
 
         display.setText(text);
+    }
+
+
+    private String getTranslatedName(LivingEntity entity) {
+
+        if (lang == null) return entity.getName();
+
+        String key = "entities." + entity.getType().name();
+
+        return lang.getString(key, entity.getName());
     }
 
     private String buildBar(double health, double maxHealth) {
@@ -256,6 +295,7 @@ public class HealthManager {
 
     public void reloadAllBars() {
 
+        loadLanguage();
         plugin.reloadConfig();
 
         for (World world : Bukkit.getWorlds()) {

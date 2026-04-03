@@ -2,6 +2,8 @@
                   #VITAL LENS
 #-------------------------------------------------
 
+language: "en"
+
 health-bar:
 
   #activa o desactiva los numeros de la vida
@@ -13,6 +15,9 @@ health-bar:
 
   #simbolo para la vida
   heart-symbol: "❤"
+
+  #ancho del texto de la vida de las entidades
+  width: 120
 
 mob-type-icon:
 
