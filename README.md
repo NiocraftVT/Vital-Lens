@@ -6,7 +6,7 @@
 
 ---
 
-## **Español** 🔴⚪🔴
+## **Español** 🟥⬜🟥
 
 ## **📝 Descripcion**
 Vital-lens es un plugin que te permite observar la vida de las entidades vanilla de minecraft como la de mods 
@@ -45,4 +45,16 @@ disponible desde la 1.20.1 hasta la 1.21.11
 
 - **crisneko**
 <img alt="orion" src="https://i.imgur.com/Ir1EUIP.png" width="400">
+
+## **English** 🟦🟥⬜
+
+## **📝 Description**
+Vital-lens is a plugin that allows you to see entitie's health weather it's vanilla or modded on servers with Paper or Mohgist/Arclight. It's available from the 1.20.1 up to 1.21.11
+
+## **Features**
+- **⚙️ Easy to use:** You can update multiple details via the `config.yml` file
+- **🌐 Multi-language support:** Currently, translations are availble in Enlgish and Spanish, but I would love to have many more languages available. Don't be afraid to submit any translations! :)
+
+## **🛠️ Commands**
+`/vitallens reload`: Allows you to reload the plugin's configuration.
 
