@@ -7,10 +7,10 @@ public class BarStyles {
         switch (style.toLowerCase()) {
 
             case "grapes":
-                return new String[]{"□","▣"};
+                return new String[]{"●","○"};
 
             case "orion":
-                return new String[]{"■","□"};
+                return new String[]{"✦","✧"};
 
             case "masaru":
                 return new String[] {"⭐","☆"};

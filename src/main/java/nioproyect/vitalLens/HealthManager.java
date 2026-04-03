@@ -99,7 +99,13 @@ public class HealthManager {
         String type = getMobType(entity);
 
 
-        String text = type + "§f" + getTranslatedName(entity) + "\n";
+        String text = "";
+
+        if (!type.isEmpty()) {
+            text += type + "\n";
+        }
+
+        text += "§f" + getTranslatedName(entity) + "\n";
 
         text += buildBar(health, maxHealth);
 
@@ -191,7 +197,7 @@ public class HealthManager {
 
 
         if (entity instanceof Monster)
-            return colorHex("#ff3b3b") + "[\uD83D\uDDE1] HOSTIL " + "§f";
+            return colorHex("#ff3b3b") + "[\uD83D\uDDE1] HOSTIL ";
 
 
         if (entity.getLastDamageCause() != null) {
@@ -200,20 +206,20 @@ public class HealthManager {
             if (entity.getLastDamageCause() instanceof org.bukkit.event.entity.EntityDamageByEntityEvent damage) {
 
                 if (damage.getDamager() instanceof Player) {
-                    return colorHex("#ff3b3b") + "[\uD83D\uDDE1] HOSTIL " + "§f";
+                    return colorHex("#ff3b3b") + "[\uD83D\uDDE1] HOSTIL ";
                 }
             }
         }
 
         if (entity instanceof Animals)
-            return colorHex("#5CFF5C") + "[❀] PACIFICO " + "§f";
+            return colorHex("#5CFF5C") + "[❀] PACIFICO " ;
 
 
         if (entity instanceof Villager)
-            return colorHex("#5CFF5C") + "[❀] PACIFICO " + "§f";
+            return colorHex("#5CFF5C") + "[❀] PACIFICO " ;
 
 
-        return colorHex("#FFD93B") + "[\uD83C\uDF1F] NEUTRAL " + "§f";
+        return colorHex("#FFD93B") + "[\uD83C\uDF1F] NEUTRAL ";
     }
 
     private boolean isPlayerNearby(LivingEntity entity) {
