@@ -2,24 +2,25 @@
                   #VITAL LENS
 #-------------------------------------------------
 
+# Language change: En (INGLES) // Es (ESPAÑOL)
 language: "en"
 
 health-bar:
 
-  #activa o desactiva los numeros de la vida
+  # Enable or disable the health being shown as a number next to the health bar.
   show-numbers: true
 
-  #añade un estilo para la barra de vida
+  # Change the style of the health bar, available options:
   # default // grapes // orion // masaru // inari // valencho // nixcel // crisneko
   style: default
 
-  #simbolo para la vida
+  # The icon that will be used for the health bar.
   heart-symbol: "❤"
 
-  #ancho del texto de la vida de las entidades
+  # Width of the entity health bar.
   width: 120
 
 mob-type-icon:
 
-  #muestra un indicador de HOSTIL // PACIFICO // NEUTRAL de las entidades
+  # Shows a legend for HOSTILE // PEACEFUL // NEUTRAL entities next to the bar.
   enable: false
